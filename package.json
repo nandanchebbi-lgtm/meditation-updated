@@ -1,0 +1,27 @@
+{
+	"name": "meditation-updated",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/kit": "^2.52.0",
+		"@sveltejs/vite-plugin-svelte": "^6.2.4",
+		"svelte": "^5.51.3",
+		"svelte-check": "^4.3.6",
+		"typescript": "^5.9.3",
+		"vite": "^7.3.1"
+	},
+	"dependencies": {
+		"livekit-client": "^2.17.1",
+		"livekit-server-sdk": "^2.15.0"
+	}
+}
