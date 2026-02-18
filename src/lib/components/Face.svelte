@@ -8,6 +8,7 @@
   export let state: 'idle' | 'playing' | 'paused' | 'completed' = 'idle';
   export let image: string | undefined = undefined;
   export let showFaceUI: boolean = true;
+  export let cycleText: string = '';
 
   const dispatch = createEventDispatcher();
 
@@ -23,6 +24,9 @@
 
   $: dashOffset = circumference * (1 - progress);
 
+  // Remaining seconds shown in the circle
+  $: displaySeconds = Math.max(totalDuration - elapsedTime, 0);
+
   function activate() {
     if (state === 'idle') dispatch('start');
     else if (state === 'playing') dispatch('pause');
@@ -30,7 +34,6 @@
     else if (state === 'completed') dispatch('restart');
   }
 
-  // Keyboard support (Enter / Space)
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -53,54 +56,42 @@
 
   <!-- Progress Ring -->
   <svg width={size} height={size} class="ring">
-    <circle
-      cx={size / 2}
-      cy={size / 2}
-      r={radius}
-      class="bg"
-    />
+    <circle cx={size / 2} cy={size / 2} r={radius} class="bg" />
     <circle
       cx={size / 2}
       cy={size / 2}
       r={radius}
       class="progress"
-      style="
-        stroke-dasharray:{circumference};
-        stroke-dashoffset:{dashOffset};
-      "
+      style="stroke-dasharray:{circumference};stroke-dashoffset:{dashOffset};"
     />
   </svg>
 
-  <!-- Optional Inner UI -->
   {#if showFaceUI}
     <div class="inner">
 
       {#if state === 'idle'}
-        <div class="message">Tap when you’re ready 💛</div>
-      {/if}
+        <div class="message">Tap to begin</div>
+        <div class="sub">Press space or enter to start</div>
 
-      {#if state === 'playing'}
-        {#if image}
-          <img
-            src={image}
-            alt={instruction}
-            class="image"
-            in:fade={{ duration: 200 }}
-            out:fade={{ duration: 150 }}
-          />
-        {/if}
-
+      {:else if state === 'playing'}
         {#if instruction}
-          <div class="instruction">{instruction}</div>
+          <div class="instruction" in:fade={{ duration: 200 }}>{instruction}</div>
         {/if}
-      {/if}
 
-      {#if state === 'paused'}
-        <div class="message">Paused 🌬️</div>
-      {/if}
+        <!-- Large countdown number -->
+        <div class="timer" in:fade={{ duration: 100 }}>{displaySeconds}</div>
 
-      {#if state === 'completed'}
-        <div class="message">Session complete ✨ Tap to restart</div>
+        {#if cycleText}
+          <div class="cycle">{cycleText}</div>
+        {/if}
+
+      {:else if state === 'paused'}
+        <div class="message">Paused</div>
+        <div class="sub">Tap to continue</div>
+
+      {:else if state === 'completed'}
+        <div class="message">Session complete</div>
+        <div class="sub">Tap to restart</div>
       {/if}
 
     </div>
@@ -123,7 +114,6 @@
   outline: none;
 }
 
-/* focus ring for keyboard users */
 .face:focus-visible {
   box-shadow: 0 0 0 4px rgba(127, 156, 245, 0.5);
   border-radius: 50%;
@@ -134,16 +124,14 @@
   width: 540px;
   height: 540px;
   border-radius: 50%;
-  background: black;
+  background: #111;
 }
 
-.ring {
-  position: absolute;
-}
+.ring { position: absolute; }
 
 .bg {
   fill: none;
-  stroke: rgba(0, 0, 0, 0.1);
+  stroke: rgba(255, 255, 255, 0.08);
   stroke-width: 20;
 }
 
@@ -151,15 +139,16 @@
   fill: none;
   stroke: #7f9cf5;
   stroke-width: 20;
+  stroke-linecap: round;
   transform: rotate(-90deg);
   transform-origin: center;
-  transition: stroke-dashoffset 0.2s linear;
+  transition: stroke-dashoffset 0.8s linear;
 }
 
 .inner {
   position: absolute;
-  width: 360px;
-  height: 360px;
+  width: 380px;
+  height: 380px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -167,20 +156,41 @@
   text-align: center;
   color: white;
   pointer-events: none;
-}
-
-.image {
-  width: 150px;
-  margin-bottom: 12px;
+  gap: 8px;
 }
 
 .instruction {
   font-size: 1.1rem;
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: rgba(255,255,255,0.85);
+}
+
+.timer {
+  font-size: 5rem;
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: white;
+}
+
+.cycle {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 4px;
 }
 
 .message {
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: white;
+}
+
+.sub {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.05em;
 }
 </style>

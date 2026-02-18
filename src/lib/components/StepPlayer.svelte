@@ -6,8 +6,6 @@
 
   export let programSlug = '4-7-8-breathing';
 
-  const SESSION_COUNT = 3;
-
   let state: 'idle' | 'playing' | 'paused' | 'completed' = 'idle';
   let actionIndex = 0;
   let elapsed = 0;
@@ -88,7 +86,7 @@
       actionIndex = 0;
       cycles++;
 
-      if (cycles >= SESSION_COUNT) {
+      if (cycles >= program.totalCycles) {
         completeSession();
         return;
       }
@@ -118,9 +116,9 @@
     elapsedTime={displayTime}
     totalDuration={currentAction.interval}
     instruction={currentAction.instruction}
-    cycleCount={cycles}
     image={currentImage}
     showFaceUI={true}
+    cycleText={state === 'playing' || state === 'paused' ? `Cycle ${cycles + 1} of ${program.totalCycles}` : ''}
     on:start={startSession}
     on:pause={pauseSession}
     on:resume={resumeSession}

@@ -12,10 +12,10 @@
 
 <div class="app">
 
-  <!-- Face is visual only -->
+  <!-- Background decorative circle -->
   <Face showFaceUI={false} />
 
-  <!-- Overlay UI -->
+  <!-- Overlay UI (always on top) -->
   <div class="overlay">
     {#if screen === 'splash'}
       <SplashScreen />
@@ -44,6 +44,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: auto; /* FIXED */
+  pointer-events: auto;
+  z-index: 1;
 }
 </style>
