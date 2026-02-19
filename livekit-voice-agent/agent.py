@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from livekit import agents
 from livekit.agents import AgentSession, Agent, room_io
 from livekit.plugins import noise_cancellation, silero, openai
-from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 load_dotenv(".env.local")
 
@@ -73,7 +72,6 @@ Guide the user through the session calmly.
             instructions="Speak slowly and calmly.",
         ),
         vad=silero.VAD.load(),
-        turn_detection=MultilingualModel(),
     )
 
     assistant = MeditationAssistant(instructions=instructions)
