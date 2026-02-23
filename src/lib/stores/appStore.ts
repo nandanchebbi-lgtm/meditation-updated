@@ -4,6 +4,8 @@ export type Screen =
   | 'splash'
   | 'conversation'
   | 'prep'
-  | 'breathing';
+  | 'breathing'
+  | 'safeHarbour'
+  | 'completed';
 
 export const currentScreen = writable<Screen>('splash');

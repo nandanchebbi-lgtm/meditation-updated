@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
+  import { currentScreen } from '$lib/stores/appStore';
   import Face from './Face.svelte';
   import { BREATHING_PROGRAMS } from '$lib/breathing/programs';
   import type { BreathingProgram } from '$lib/breathing/types';
@@ -98,6 +99,11 @@
   function completeSession() {
     clearTimer();
     state = 'completed';
+
+    // Small pause to show "Session complete" on Face
+    setTimeout(() => {
+      currentScreen.set('safeHarbour');
+    }, 1500);
   }
 
   function clearTimer() {
@@ -118,7 +124,11 @@
     instruction={currentAction.instruction}
     image={currentImage}
     showFaceUI={true}
-    cycleText={state === 'playing' || state === 'paused' ? `Cycle ${cycles + 1} of ${program.totalCycles}` : ''}
+    cycleText={
+      state === 'playing' || state === 'paused'
+        ? `Cycle ${cycles + 1} of ${program.totalCycles}`
+        : ''
+    }
     on:start={startSession}
     on:pause={pauseSession}
     on:resume={resumeSession}

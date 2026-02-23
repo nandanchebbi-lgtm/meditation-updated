@@ -1,0 +1,70 @@
+/* =========================
+   DESIGN TOKENS
+========================= */
+
+:root {
+  /* Fonts */
+  --font-primary: 'Fredoka', sans-serif;
+  --font-secondary: 'Roboto', sans-serif;
+
+  /* Font sizes */
+  --heading-size: 14px;
+  --text-size: 12px;
+
+  /* Base colours */
+  --bg-default: #000000;
+  --heading-color: #ffffff;
+  --text-color: #dddddd;
+
+  /* Example pastel themes */
+  --pastel-blue-start: #a8edea;
+  --pastel-blue-end: #fed6e3;
+
+  --pastel-green-start: #d4fc79;
+  --pastel-green-end: #96e6a1;
+
+  --pastel-purple-start: #e0c3fc;
+  --pastel-purple-end: #8ec5fc;
+}
+
+/* =========================
+   GLOBAL RESET
+========================= */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-default);
+  font-family: var(--font-secondary);
+  font-size: var(--text-size);
+  color: var(--text-color);
+}
+
+/* =========================
+   TYPOGRAPHY
+========================= */
+
+h1, h2, h3, .heading {
+  font-family: var(--font-primary);
+  font-weight: 700;
+  font-size: var(--heading-size);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--heading-color);
+  margin: 0;
+}
+
+p, .text {
+  font-family: var(--font-secondary);
+  font-weight: 400;
+  font-size: var(--text-size);
+  line-height: 1.6;
+}
+
+/* Buttons */
+button {
+  font-family: var(--font-primary);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
