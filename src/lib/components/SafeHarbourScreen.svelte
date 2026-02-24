@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { currentScreen } from '$lib/stores/appStore';
   import { sendCommand, agentTranscript, agentStatus } from '$lib/services/livekit';
+  import Face from '$lib/components/Face.svelte';
 
   let autoTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -9,10 +10,11 @@
     sendCommand('safe_harbour');
   });
 
+  // When agent finishes speaking → trigger explosion delay → go to completed
   $: if ($agentStatus === 'waiting' && $agentTranscript && !autoTimer) {
     autoTimer = setTimeout(() => {
       currentScreen.set('completed');
-    }, 4000);
+    }, 3500); // matches explosion duration
   }
 
   function continueFlow() {
@@ -28,39 +30,59 @@
   });
 </script>
 
-<div class="screen">
-  <h2>Safe Harbour</h2>
+<div class="wrapper">
 
-  {#if $agentTranscript}
-    <p class="message">{$agentTranscript}</p>
-  {:else}
-    <p class="muted">Take a moment to return gently.</p>
-  {/if}
+  <!-- 🎉 Confetti Explosion Inside Face -->
+  <Face
+    mode="celebration-explosion"
+    state="completed"
+    riveSrc="/confetti-explosion.riv"
+    showFaceUI={true}
+  />
 
-  <button on:click={continueFlow}>
-    Continue
-  </button>
+  <!-- Transcript + Continue -->
+  <div class="content">
+    {#if $agentTranscript}
+      <p class="message">{$agentTranscript}</p>
+    {:else}
+      <p class="muted">Take a moment to return gently.</p>
+    {/if}
+
+    <button on:click={continueFlow}>
+      Continue
+    </button>
+  </div>
+
 </div>
 
 <style>
-.screen {
+.wrapper {
+  position: relative;
+  height: 100vh;
+}
+
+.content {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
   max-width: 480px;
-  margin: 120px auto;
   padding: 0 20px;
 }
 
 .message {
   font-size: 1.15rem;
   line-height: 1.8;
+  margin-bottom: 32px;
 }
 
 .muted {
   color: #999;
+  margin-bottom: 32px;
 }
 
 button {
-  margin-top: 50px;
   padding: 12px 32px;
   border-radius: 999px;
   background: #111;

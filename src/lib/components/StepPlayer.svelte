@@ -1,33 +1,37 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
-  import { currentScreen } from '$lib/stores/appStore';
-  import Face from './Face.svelte';
-  import { BREATHING_PROGRAMS } from '$lib/breathing/programs';
-  import type { BreathingProgram } from '$lib/breathing/types';
+  import { onDestroy } from "svelte";
+  import { currentScreen } from "$lib/stores/appStore";
+  import Face from "./Face.svelte";
+  import { BREATHING_PROGRAMS } from "$lib/breathing/programs";
+  import type { BreathingProgram } from "$lib/breathing/types";
 
-  export let programSlug = '4-7-8-breathing';
+  export let programSlug = "4-7-8-breathing";
 
-  let state: 'idle' | 'playing' | 'paused' | 'completed' = 'idle';
+  let state: "idle" | "playing" | "paused" | "completed" = "idle";
   let actionIndex = 0;
   let elapsed = 0;
   let cycles = 0;
   let interval: ReturnType<typeof setInterval> | null = null;
 
-  // Safe program lookup
+  /* ---------------- PROGRAM ---------------- */
+
   $: program = BREATHING_PROGRAMS.find(
     (p) => p.slug === programSlug
   ) as BreathingProgram;
 
   $: currentAction = program?.actions[actionIndex];
 
-  // Extract image safely
-  $: currentImage = currentAction?.image;
+  // get rive animation
+  $: currentRive = currentAction?.rive;
 
-  // Handle decremental timers
+  /* ---------------- TIMER DISPLAY ---------------- */
+
   $: displayTime =
-    currentAction?.timerPattern === 'Decremental'
+    currentAction?.timerPattern === "Decremental"
       ? Math.max(currentAction.interval - elapsed, 0)
       : elapsed;
+
+  /* ---------------- AUDIO ---------------- */
 
   function playSound(file?: string) {
     if (!file) return;
@@ -35,10 +39,12 @@
     audio.play().catch(() => {});
   }
 
+  /* ---------------- SESSION CONTROL ---------------- */
+
   function startSession() {
     if (!currentAction) return;
 
-    state = 'playing';
+    state = "playing";
     actionIndex = 0;
     elapsed = 0;
     cycles = 0;
@@ -48,26 +54,28 @@
   }
 
   function pauseSession() {
-    state = 'paused';
+    state = "paused";
   }
 
   function resumeSession() {
-    state = 'playing';
+    state = "playing";
   }
 
   function restartSession() {
     clearTimer();
-    state = 'idle';
+    state = "idle";
     actionIndex = 0;
     elapsed = 0;
     cycles = 0;
   }
 
+  /* ---------------- TIMER ENGINE ---------------- */
+
   function runTimer() {
     clearTimer();
 
     interval = setInterval(() => {
-      if (state !== 'playing' || !currentAction) return;
+      if (state !== "playing" || !currentAction) return;
 
       elapsed += 1;
 
@@ -98,11 +106,10 @@
 
   function completeSession() {
     clearTimer();
-    state = 'completed';
+    state = "completed";
 
-    // Small pause to show "Session complete" on Face
     setTimeout(() => {
-      currentScreen.set('safeHarbour');
+      currentScreen.set("safeHarbour");
     }, 1500);
   }
 
@@ -122,12 +129,12 @@
     elapsedTime={displayTime}
     totalDuration={currentAction.interval}
     instruction={currentAction.instruction}
-    image={currentImage}
+    riveSrc={currentRive}
     showFaceUI={true}
     cycleText={
-      state === 'playing' || state === 'paused'
+      state === "playing" || state === "paused"
         ? `Cycle ${cycles + 1} of ${program.totalCycles}`
-        : ''
+        : ""
     }
     on:start={startSession}
     on:pause={pauseSession}

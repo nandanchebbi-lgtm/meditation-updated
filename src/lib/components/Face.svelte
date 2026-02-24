@@ -1,16 +1,51 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import { fade } from 'svelte/transition';
+  import { createEventDispatcher, onMount, onDestroy } from "svelte";
+  import { fade } from "svelte/transition";
+  import { browser } from "$app/environment";
 
   export let elapsedTime: number = 0;
   export let totalDuration: number = 15;
-  export let instruction: string = '';
-  export let state: 'idle' | 'playing' | 'paused' | 'completed' = 'idle';
-  export let image: string | undefined = undefined;
+  export let instruction: string = "";
+  export let state: "idle" | "playing" | "paused" | "completed" = "idle";
+  export let riveSrc: string | undefined = undefined;
   export let showFaceUI: boolean = true;
-  export let cycleText: string = '';
+  export let cycleText: string = "";
+
+  export let mode: "breathing" | "celebration-explosion" | "celebration-loop" =
+    "breathing";
 
   const dispatch = createEventDispatcher();
+
+  let canvas: HTMLCanvasElement | null = null;
+  let riveInstance: any = null;
+
+  async function loadRive() {
+    if (!browser || !canvas || !riveSrc) return;
+
+    const rivePkg = await import("@rive-app/canvas");
+    const { Rive, Layout, Fit, Alignment } = rivePkg;
+
+    riveInstance?.cleanup?.();
+
+    riveInstance = new Rive({
+      src: riveSrc,
+      canvas,
+      autoplay: true,
+      layout: new Layout({
+        fit: Fit.Cover, // 🔥 ensures full circular coverage
+        alignment: Alignment.Center
+      }),
+      onLoad: () => {
+        riveInstance.resizeDrawingSurfaceToCanvas();
+      }
+    });
+  }
+
+  onMount(loadRive);
+  $: if (riveSrc && canvas) loadRive();
+  onDestroy(() => riveInstance?.cleanup?.());
+
+  /* ---------------- PROGRESS RING ---------------- */
 
   const size = 580;
   const strokeWidth = 20;
@@ -23,19 +58,21 @@
       : 0;
 
   $: dashOffset = circumference * (1 - progress);
-
-  // Remaining seconds shown in the circle
   $: displaySeconds = Math.max(totalDuration - elapsedTime, 0);
 
+  /* ---------------- INTERACTION ---------------- */
+
   function activate() {
-    if (state === 'idle') dispatch('start');
-    else if (state === 'playing') dispatch('pause');
-    else if (state === 'paused') dispatch('resume');
-    else if (state === 'completed') dispatch('restart');
+    if (mode !== "breathing") return;
+
+    if (state === "idle") dispatch("start");
+    else if (state === "playing") dispatch("pause");
+    else if (state === "paused") dispatch("resume");
+    else if (state === "completed") dispatch("restart");
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       activate();
     }
@@ -50,53 +87,72 @@
   on:click={activate}
   on:keydown={handleKeydown}
 >
-
-  <!-- Black Circle -->
+  <!-- Outer Black Circle -->
   <div class="circle"></div>
 
-  <!-- Progress Ring -->
-  <svg width={size} height={size} class="ring">
-    <circle cx={size / 2} cy={size / 2} r={radius} class="bg" />
-    <circle
-      cx={size / 2}
-      cy={size / 2}
-      r={radius}
-      class="progress"
-      style="stroke-dasharray:{circumference};stroke-dashoffset:{dashOffset};"
-    />
-  </svg>
+  <!-- Rive Animation -->
+  {#if riveSrc}
+    <div class="riveWrapper">
+      <canvas bind:this={canvas}></canvas>
+    </div>
+  {/if}
 
+  <!-- Progress Ring (Breathing Only) -->
+  {#if mode === "breathing"}
+    <svg width={size} height={size} class="ring">
+      <circle cx={size / 2} cy={size / 2} r={radius} class="bg" />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        class="progress"
+        style="stroke-dasharray:{circumference};stroke-dashoffset:{dashOffset};"
+      />
+    </svg>
+  {/if}
+
+  <!-- Inner Content -->
   {#if showFaceUI}
     <div class="inner">
 
-      {#if state === 'idle'}
-        <div class="message">Tap to begin</div>
-        <div class="sub">Press space or enter to start</div>
+      <!-- 🔥 Custom Slot Content -->
+      <slot />
 
-      {:else if state === 'playing'}
-        {#if instruction}
-          <div class="instruction" in:fade={{ duration: 200 }}>{instruction}</div>
+      <!-- Default Breathing UI (if no slot provided) -->
+      {#if !$$slots.default && mode === "breathing"}
+
+        {#if state === "idle"}
+          <div class="message">Tap to begin</div>
+          <div class="sub">Press space or enter to start</div>
+
+        {:else if state === "playing"}
+          {#if instruction}
+            <div class="instruction" in:fade={{ duration: 200 }}>
+              {instruction}
+            </div>
+          {/if}
+
+          <div class="timer" in:fade={{ duration: 100 }}>
+            {displaySeconds}
+          </div>
+
+          {#if cycleText}
+            <div class="cycle">{cycleText}</div>
+          {/if}
+
+        {:else if state === "paused"}
+          <div class="message">Paused</div>
+          <div class="sub">Tap to continue</div>
+
+        {:else if state === "completed"}
+          <div class="message">Session complete</div>
+          <div class="sub">Tap to restart</div>
         {/if}
 
-        <!-- Large countdown number -->
-        <div class="timer" in:fade={{ duration: 100 }}>{displaySeconds}</div>
-
-        {#if cycleText}
-          <div class="cycle">{cycleText}</div>
-        {/if}
-
-      {:else if state === 'paused'}
-        <div class="message">Paused</div>
-        <div class="sub">Tap to continue</div>
-
-      {:else if state === 'completed'}
-        <div class="message">Session complete</div>
-        <div class="sub">Tap to restart</div>
       {/if}
 
     </div>
   {/if}
-
 </div>
 
 <style>
@@ -110,15 +166,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   outline: none;
 }
 
-.face:focus-visible {
-  box-shadow: 0 0 0 4px rgba(127, 156, 245, 0.5);
-  border-radius: 50%;
-}
-
+/* Black Inner Circle */
 .circle {
   position: absolute;
   width: 540px;
@@ -127,7 +178,28 @@
   background: #111;
 }
 
-.ring { position: absolute; }
+/* 🔥 Rive Now Fills Entire Circle */
+.riveWrapper {
+  position: absolute;
+  width: 540px;   /* match .circle */
+  height: 540px;  /* match .circle */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden; /* keeps it circular */
+}
+
+.riveWrapper canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Progress Ring */
+.ring {
+  position: absolute;
+}
 
 .bg {
   fill: none;
@@ -145,6 +217,7 @@
   transition: stroke-dashoffset 0.8s linear;
 }
 
+/* Inner Content */
 .inner {
   position: absolute;
   width: 380px;
@@ -153,44 +226,39 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
   color: white;
+  text-align: center;
+  gap: 16px;
   pointer-events: none;
-  gap: 8px;
-}
-
-.instruction {
-  font-size: 1.1rem;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  color: rgba(255,255,255,0.85);
 }
 
 .timer {
   font-size: 5rem;
   font-weight: 200;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: white;
-}
-
-.cycle {
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.45);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-top: 4px;
 }
 
 .message {
-  font-size: 1.3rem;
-  font-weight: 400;
-  color: white;
+  font-size: 1.4rem;
 }
 
 .sub {
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.4);
-  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+button {
+  padding: 12px 28px;
+  border-radius: 999px;
+  background: black;
+  color: white;
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
 }
 </style>

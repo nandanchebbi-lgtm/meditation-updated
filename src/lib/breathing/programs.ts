@@ -1,5 +1,3 @@
-// src/lib/breathing/programs.ts
-
 import type { BreathingProgram } from './types';
 
 export const BREATHING_PROGRAMS: BreathingProgram[] = [
@@ -17,7 +15,8 @@ export const BREATHING_PROGRAMS: BreathingProgram[] = [
         timerPattern: "Incremental",
         description: "Inhale smoothly for 4 seconds",
         sound: "inhale.mp3",
-        image: "/images/inhale.png"
+        image: "/images/inhale.png",
+        rive: "/breathing_inhale.riv" // ✅
       },
       {
         instruction: "Hold your breath",
@@ -25,7 +24,8 @@ export const BREATHING_PROGRAMS: BreathingProgram[] = [
         timerPattern: "Decremental",
         description: "Hold gently for 7 seconds",
         sound: "hold-7secs.mp3",
-        image: "/images/hold.png"
+        image: "/images/hold.png",
+        rive: "/breathing_hold.riv" // ✅
       },
       {
         instruction: "Exhale slowly through your mouth",
@@ -33,7 +33,8 @@ export const BREATHING_PROGRAMS: BreathingProgram[] = [
         timerPattern: "Decremental",
         description: "Exhale slowly for 8 seconds",
         sound: "exhale-8secs.mp3",
-        image: "/images/exhale.png"
+        image: "/images/exhale.png",
+        rive: "/breathing_exhale.riv" // ✅
       }
     ]
   },
@@ -42,8 +43,7 @@ export const BREATHING_PROGRAMS: BreathingProgram[] = [
     name: "Balancing Breath",
     slug: "balancing-breath",
     origin: "Pranayama",
-    description:
-      "Equal-ratio breathing to restore balance and regulate stress.",
+    description: "Equal-ratio breathing to restore balance and regulate stress.",
     totalCycles: 6,
     actions: [
       {
@@ -51,14 +51,16 @@ export const BREATHING_PROGRAMS: BreathingProgram[] = [
         interval: 4,
         timerPattern: "Incremental",
         sound: "inhale.mp3",
-        image: "/images/inhale.png"
+        image: "/images/inhale.png",
+        rive: "/breathing_inhale.riv"
       },
       {
         instruction: "Exhale gently",
         interval: 4,
         timerPattern: "Decremental",
         sound: "exhale.mp3",
-        image: "/images/exhale.png"
+        image: "/images/exhale.png",
+        rive: "/breathing_exhale.riv"
       }
     ]
   }

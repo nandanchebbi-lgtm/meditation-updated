@@ -1,10 +1,49 @@
 <script lang="ts">
   import { currentScreen } from '$lib/stores/appStore';
   import { browser } from '$app/environment';
+  import { onMount, onDestroy } from 'svelte';
 
   let step = '';
   let errorMessage = '';
   let loading = false;
+
+  let canvas: HTMLCanvasElement;
+  let rive: any;
+
+  onMount(async () => {
+    if (!browser) return;
+
+    const riveModule = await import('@rive-app/canvas');
+    const { Rive } = riveModule;
+
+    rive = new Rive({
+      src: '/boot_up.riv',
+      canvas,
+      autoplay: true,
+      onLoad: () => {
+        // ✅ This properly centers & scales in latest Rive runtime
+        rive.resizeDrawingSurfaceToCanvas();
+      }
+    });
+
+    // Optional: handle window resize
+    const handleResize = () => {
+      rive?.resizeDrawingSurfaceToCanvas();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    onDestroy(() => {
+      window.removeEventListener('resize', handleResize);
+    });
+  });
+
+  onDestroy(() => {
+    if (rive) {
+      rive.cleanup();
+      rive = null;
+    }
+  });
 
   async function start(): Promise<void> {
     if (!browser) return;
@@ -27,7 +66,6 @@
       await connectToRoom(token, url);
 
       step = 'Waiting for guide to arrive...';
-      // Small pause so the user can see the step
       await new Promise((r) => setTimeout(r, 800));
 
       currentScreen.set('conversation');
@@ -42,71 +80,112 @@
 </script>
 
 <div class="screen">
-  <h1>Welcome</h1>
-  <p class="subtitle">Your guided meditation session</p>
+  <div class="circle">
+    <canvas bind:this={canvas} class="rive-bg"></canvas>
 
-  {#if errorMessage}
-    <p class="error">{errorMessage}</p>
-  {/if}
+    <div class="content">
+      <h1>WELCOME</h1>
+      <p class="subtitle">Your guided meditation session</p>
 
-  {#if loading}
-    <div class="step-row">
-      <span class="spinner"></span>
-      <span class="step-text">{step}</span>
+      {#if errorMessage}
+        <p class="error">{errorMessage}</p>
+      {/if}
+
+      {#if loading}
+        <div class="step-row">
+          <span class="spinner"></span>
+          <span class="step-text">{step}</span>
+        </div>
+      {:else}
+        <button on:click={start}>BEGIN</button>
+      {/if}
     </div>
-  {:else}
-    <button on:click={start}>Begin</button>
-  {/if}
+  </div>
 </div>
 
 <style>
   .screen {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: black;
+  }
+
+  .circle {
+    position: relative;
+    width: 580px;
+    height: 580px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #111;
+  }
+
+  .rive-bg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
     text-align: center;
-    margin-top: 120px;
+    padding: 40px;
   }
 
   h1 {
     font-size: 2rem;
     font-weight: 300;
-    margin-bottom: 8px;
+    letter-spacing: 0.15em;
+    margin-bottom: 10px;
   }
 
   .subtitle {
-    color: #888;
+    color: #aaa;
     margin-bottom: 40px;
     font-size: 0.95rem;
   }
 
   button {
     padding: 14px 36px;
-    font-size: 16px;
+    font-size: 14px;
     border: none;
     border-radius: 999px;
-    background: #111;
-    color: white;
+    background: white;
+    color: black;
     cursor: pointer;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
+    transition: opacity 0.2s ease;
   }
 
-  button:hover { background: #333; }
+  button:hover {
+    opacity: 0.9;
+  }
 
   .step-row {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    color: #555;
+    color: #ccc;
     font-size: 0.9rem;
   }
 
   .spinner {
     width: 16px;
     height: 16px;
-    border: 2px solid #ccc;
-    border-top-color: #333;
+    border: 2px solid #555;
+    border-top-color: white;
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
-    flex-shrink: 0;
   }
 
   @keyframes spin {
@@ -114,7 +193,7 @@
   }
 
   .error {
-    color: #c0392b;
+    color: #e74c3c;
     margin-bottom: 16px;
     font-size: 0.9rem;
   }
