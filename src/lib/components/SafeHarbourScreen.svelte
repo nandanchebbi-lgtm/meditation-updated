@@ -14,7 +14,7 @@
   $: if ($agentStatus === 'waiting' && $agentTranscript && !autoTimer) {
     autoTimer = setTimeout(() => {
       currentScreen.set('completed');
-    }, 3500); // matches explosion duration
+    }, 3500);
   }
 
   function continueFlow() {
@@ -30,18 +30,12 @@
   });
 </script>
 
-<div class="wrapper">
-
-  <!-- 🎉 Confetti Explosion Inside Face -->
-  <Face
-    mode="celebration-explosion"
-    state="completed"
-    riveSrc="/confetti-explosion.riv"
-    showFaceUI={true}
-  />
-
-  <!-- Transcript + Continue -->
-  <div class="content">
+<Face
+  mode="celebration-explosion"
+  state="completed"
+  riveSrc="/confetti-explosion.riv"
+>
+  <div class="safe-content">
     {#if $agentTranscript}
       <p class="message">{$agentTranscript}</p>
     {:else}
@@ -52,34 +46,24 @@
       Continue
     </button>
   </div>
-
-</div>
+</Face>
 
 <style>
-.wrapper {
-  position: relative;
-  height: 100vh;
-}
-
-.content {
-  position: absolute;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
+.safe-content {
+  max-width: 360px;
   text-align: center;
-  max-width: 480px;
-  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
 
 .message {
   font-size: 1.15rem;
   line-height: 1.8;
-  margin-bottom: 32px;
 }
 
 .muted {
   color: #999;
-  margin-bottom: 32px;
 }
 
 button {

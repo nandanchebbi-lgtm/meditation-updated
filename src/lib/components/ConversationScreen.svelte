@@ -14,11 +14,11 @@
     const { Rive } = riveModule;
 
     rive = new Rive({
-      src: '/narrative_screen_.riv', // same as before
+      src: '/narrative_screen_.riv',
       canvas,
       autoplay: true,
       onLoad: () => {
-        rive.resizeDrawingSurfaceToCanvas(); // ✅ properly scale & center
+        rive.resizeDrawingSurfaceToCanvas();
       }
     });
 
@@ -47,13 +47,11 @@
 
   const statusHint: Record<string, string> = {
     waiting: 'Audio is generating — this takes a few seconds.',
-    speaking: 'Listen to your guide. Press Continue when ready.',
     listening: 'The guide is listening to you.'
   };
 </script>
 
 <div class="screen">
-  <!-- Rive Background -->
   <div class="circle">
     <canvas bind:this={canvas} class="rive-bg"></canvas>
 
@@ -87,47 +85,92 @@
 </div>
 
 <style>
-  .screen { display:flex; align-items:center; justify-content:center; height:100vh; }
+  .screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+
   .circle {
     position: relative;
     width: 580px;
     height: 580px;
-    border-radius:50%;
-    overflow:hidden;
-    background:#111;
-  }
-  .rive-bg { width:100%; height:100%; display:block; }
-  .content {
-    position:absolute;
-    inset:0;
-    z-index:2;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    color:white;
-    text-align:center;
-    padding:40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #111;
   }
 
-  /* Badge, wave, transcript, button styles same as before */
-  .badge { display:flex; align-items:center; gap:8px; padding:6px 16px; border-radius:999px; font-size:0.85rem; font-weight:500; background:#f0f0f0; color:#444; }
-  .badge.speaking{ background:#e8f5e9; color:#2e7d32;}
-  .badge.listening{ background:#e3f2fd; color:#1565c0;}
-  .badge.waiting{ background:#fff8e1; color:#f57f17;}
-  .dot{ width:8px;height:8px;border-radius:50%;background:currentColor;}
-  .dot.pulse{animation:blink 1s infinite;}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-  .wave{display:flex;gap:4px;height:36px}
-  .bar{width:4px;border-radius:2px;background:#2e7d32;animation:wave .8s infinite alternate}
+  .rive-bg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: #f0f0f0;
+    color: #444;
+  }
+  .badge.speaking { background:#e8f5e9; color:#2e7d32; }
+  .badge.listening { background:#e3f2fd; color:#1565c0; }
+  .badge.waiting { background:#fff8e1; color:#f57f17; }
+
+  .dot { width:8px;height:8px;border-radius:50%;background:currentColor; }
+  .dot.pulse { animation:blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+
+  .wave { display:flex;gap:4px;height:36px;margin-bottom:16px; }
+  .bar { width:4px;border-radius:2px;background:#2e7d32;animation:wave .8s infinite alternate; }
   .bar:nth-child(1){height:12px}
   .bar:nth-child(2){height:24px}
   .bar:nth-child(3){height:36px}
   .bar:nth-child(4){height:24px}
   .bar:nth-child(5){height:12px}
   @keyframes wave{from{transform:scaleY(.4)}to{transform:scaleY(1)}}
-  .transcript{min-height:60px;font-size:1rem;line-height:1.6;color:#fff}
-  .transcript .muted{color:#aaa;font-style:italic;font-size:.9rem}
-  button{padding:12px 32px;font-size:15px;border:none;border-radius:999px;background:#fff;color:#111;cursor:pointer}
-  button:hover{opacity:0.9;}
+
+  .transcript { min-height:60px; font-size:1rem; line-height:1.6; color:#fff; margin-bottom:16px; }
+  .transcript .muted { color:#aaa; font-style:italic; font-size:.9rem; }
+
+  /* Updated button styling */
+  button {
+    position: absolute;       /* independent of text above */
+    bottom: 40px;             /* distance from bottom of circle */
+    left: 50%;                /* center horizontally */
+    transform: translateX(-50%);
+    padding: 14px 36px;
+    font-size: 14px;
+    border: 2px solid black;  /* black outline */
+    border-radius: 999px;
+    background: white;
+    color: black;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s ease;
+  }
+
+  button:hover {
+    background: black;
+    color: white;
+    opacity: 0.9;
+  }
 </style>

@@ -11,8 +11,10 @@
   export let showFaceUI: boolean = true;
   export let cycleText: string = "";
 
-  export let mode: "breathing" | "celebration-explosion" | "celebration-loop" =
-    "breathing";
+  export let mode:
+    | "breathing"
+    | "celebration-explosion"
+    | "celebration-loop" = "breathing";
 
   const dispatch = createEventDispatcher();
 
@@ -32,7 +34,7 @@
       canvas,
       autoplay: true,
       layout: new Layout({
-        fit: Fit.Cover, // 🔥 ensures full circular coverage
+        fit: Fit.Cover,
         alignment: Alignment.Center
       }),
       onLoad: () => {
@@ -46,7 +48,6 @@
   onDestroy(() => riveInstance?.cleanup?.());
 
   /* ---------------- PROGRESS RING ---------------- */
-
   const size = 580;
   const strokeWidth = 20;
   const radius = size / 2 - strokeWidth / 2;
@@ -61,7 +62,6 @@
   $: displaySeconds = Math.max(totalDuration - elapsedTime, 0);
 
   /* ---------------- INTERACTION ---------------- */
-
   function activate() {
     if (mode !== "breathing") return;
 
@@ -80,7 +80,7 @@
 </script>
 
 <div
-  class="face"
+  class="face {state === 'idle' ? 'idle' : ''}"
   role="button"
   tabindex="0"
   aria-label="Meditation control"
@@ -118,9 +118,8 @@
       <!-- 🔥 Custom Slot Content -->
       <slot />
 
-      <!-- Default Breathing UI (if no slot provided) -->
+      <!-- Default Breathing UI -->
       {#if !$$slots.default && mode === "breathing"}
-
         {#if state === "idle"}
           <div class="message">Tap to begin</div>
           <div class="sub">Press space or enter to start</div>
@@ -148,7 +147,6 @@
           <div class="message">Session complete</div>
           <div class="sub">Tap to restart</div>
         {/if}
-
       {/if}
 
     </div>
@@ -178,16 +176,16 @@
   background: #111;
 }
 
-/* 🔥 Rive Now Fills Entire Circle */
+/* Rive Animation - full circle */
 .riveWrapper {
   position: absolute;
-  width: 540px;   /* match .circle */
-  height: 540px;  /* match .circle */
+  width: 580px;
+  height: 580px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  overflow: hidden; /* keeps it circular */
+  overflow: hidden;
 }
 
 .riveWrapper canvas {
@@ -225,24 +223,36 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* default center */
   color: white;
   text-align: center;
   gap: 16px;
   pointer-events: none;
 }
 
+/* Move idle content lower */
+.face.idle .inner {
+  justify-content: flex-end;
+  padding-bottom: 40px;
+}
+
+/* ✅ Allow slotted content to be interactive */
+.inner :global(*) {
+  pointer-events: auto;
+}
+
+/* Default Breathing Text */
 .timer {
   font-size: 5rem;
   font-weight: 200;
 }
 
 .message {
-  font-size: 1.4rem;
+  font-size: 1.2rem; /* slightly smaller for better balance */
 }
 
 .sub {
-  font-size: 0.85rem;
+  font-size: 0.75rem; /* slightly smaller for idle state */
   opacity: 0.6;
 }
 
@@ -250,15 +260,5 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-}
-
-button {
-  padding: 12px 28px;
-  border-radius: 999px;
-  background: black;
-  color: white;
-  border: none;
-  cursor: pointer;
-  pointer-events: auto;
 }
 </style>
